@@ -2,13 +2,22 @@ package example.com.stepsapp;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.os.CountDownTimer;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.hardware.SensorManager;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.pm.PackageManager;
@@ -17,132 +26,78 @@ import org.w3c.dom.Text;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 
-public class MainActivity extends Activity implements SensorEventListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    private DrawerLayout drawer;
 
-    private SensorManager mSensorManager;
-    private PackageManager packageManager;
+    static public SQLiteDatabase activityLog = null;
 
-    boolean activityRunning;
+    final static public SimpleDateFormat printDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
-    public TextView count;
-    public TextView state;
-    public TextView timerDisplay;
-
-    private CountDownTimer timer;
-    private String stateMessage;
-
-    private long timeLeftInMilli = 5000;
-    private double secondsWalking;
+    //public TextView count;
+    //public TextView state;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-        packageManager = getPackageManager();
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        count = (TextView)findViewById(R.id.count);
-        state = (TextView)findViewById(R.id.state);
+        drawer = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MovementFragment()).commit();
+            navigationView.setCheckedItem(R.id.nav_movement);
+        }
+        activityLog = (new DatabaseHelper(this)).getWritableDatabase();
+    }
 
 
-        stateMessage = "Standing";
-        state.setText(stateMessage);
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        switch (menuItem.getItemId()) {
+            case R.id.nav_current_activity:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new CurrentActivityFragment()).commit();
+                drawer.closeDrawer(GravityCompat.START);
+                break;
+            case R.id.nav_movement:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MovementFragment()).commit();
+                drawer.closeDrawer(GravityCompat.START);
+                break;
+            case R.id.nav_activity_history:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new ActivityHistoryFragment()).commit();
+                drawer.closeDrawer(GravityCompat.START);
+                break;
+        }
+        return true;
+    }
 
-      //  updateTimer();
-        secondsWalking = 0;
-
-
-
-
+    @Override
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        activityRunning = true;
-
-
-       Sensor counterSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-
-       if (counterSensor != null) {
-           Toast.makeText(this, "TENGO UN STEP COUNTER USANDO SENSOR MANAGER", Toast.LENGTH_LONG).show();
-           mSensorManager.registerListener(this, counterSensor, SensorManager.SENSOR_DELAY_NORMAL);
-
-
-       }
-
-
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        activityRunning = false;
-       // timer.cancel();
-        // if you unregister the last listener, the hardware will stop detecting step events
-      //9  mSensorManager.unregisterListener(this);
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        if (activityRunning) {
-            count.setText(String.valueOf(event.values[0]));
-            secondsWalking += 1.915;
-            secondsWalking = round(secondsWalking, 2);
-
-            state.setText("Seconds on the go: " + secondsWalking);
-
-          //  if (stateMessage != "Moving") {
-            //    stateMessage  = "Moving";
-             //   state.setText(stateMessage);
-
-            //}
-
-
-          //  StartTimer();
-
-        }
-
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-    }
-
-    private void StartTimer() {
-
-
-        timer = new CountDownTimer(5000, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                timeLeftInMilli = millisUntilFinished;
-                //updateTimer();
-
-            }
-
-            @Override
-            public void onFinish() {
-                stateMessage = "Standing";
-                state.setText(stateMessage);
-
-
-            }
-        }.start();
-    }
-
-    private void updateTimer() {
-        int seconds = (int) timeLeftInMilli / 1000;
-        //timerDisplay.setText("" + seconds);
-    }
-
-    public static double round(double value, int places) {
-        if (places < 0) throw new IllegalArgumentException();
-
-        BigDecimal bd = new BigDecimal(value);
-        bd = bd.setScale(places, RoundingMode.HALF_UP);
-        return bd.doubleValue();
     }
 
 
