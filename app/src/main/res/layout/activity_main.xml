@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:gravity="center"
+    tools:context=".MainActivity"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:gravity="center"
+        android:text="Steps" />
+
+    <TextView
+        android:id="@+id/count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="15000"
+        android:textSize="36sp"
+        />
+
+    <TextView
+        android:id="@+id/state"
+        android:layout_width="253dp"
+        android:layout_height="74dp"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:text="Walking or Moving"
+        app:layout_constraintTop_toBottomOf="@+id/count"
+        tools:layout_editor_absoluteX="66dp" />
+
+</LinearLayout>
