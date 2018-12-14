@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+   <com.github.mikephil.charting.charts.PieChart
+       android:id="@+id/stepschart"
+       android:layout_width="313dp"
+       android:layout_height="389dp"
+
+       android:layout_alignParentStart="true"
+       android:layout_alignParentTop="true"
+       android:layout_marginStart="28dp"
+       android:layout_marginTop="45dp">
+
+   </com.github.mikephil.charting.charts.PieChart>
+
+   <TextView
+       android:id="@+id/chartStepsTaken"
+       android:layout_width="208dp"
+       android:layout_height="wrap_content"
+       android:layout_alignParentStart="true"
+       android:layout_alignParentBottom="true"
+       android:layout_marginStart="79dp"
+       android:layout_marginBottom="88dp"
+       android:text="TextView"
+       tools:textSize="30sp"
+       android:gravity="center"
+       />
+
+</RelativeLayout>

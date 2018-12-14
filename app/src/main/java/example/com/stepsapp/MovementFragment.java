@@ -1,6 +1,7 @@
 package example.com.stepsapp;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -8,6 +9,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
@@ -26,8 +28,11 @@ import android.widget.Toast;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
-public class MovementFragment extends Fragment implements SensorEventListener {
+public class MovementFragment extends Fragment  implements SensorEventListener {
 
     private SensorManager mSensorManager;
     private PackageManager packageManager;
@@ -37,14 +42,19 @@ public class MovementFragment extends Fragment implements SensorEventListener {
     private DrawerLayout drawer;
 
     public TextView count;
-    public TextView state;
-    public TextView timerDisplay;
+    public TextView countReference;
 
-    private CountDownTimer timer;
+    public TextView state;
+
+
     private String stateMessage;
 
-    private long timeLeftInMilli = 5000;
-    private double secondsWalking;
+    SharedPreferences prefs;
+    SharedPreferences.Editor editor;
+
+
+    private float secondsWalking;
+    private float foregroundSteps;
 
     @Nullable
     @Override
@@ -61,6 +71,7 @@ public class MovementFragment extends Fragment implements SensorEventListener {
 
         count = (TextView)getActivity().findViewById(R.id.count);
         state = (TextView)getActivity().findViewById(R.id.state);
+        countReference = (TextView)getActivity().findViewById(R.id.countReference);
 
 
         stateMessage = "Standing";
@@ -68,6 +79,9 @@ public class MovementFragment extends Fragment implements SensorEventListener {
 
         //  updateTimer();
         secondsWalking = 0;
+
+        prefs = getActivity().getApplicationContext().getSharedPreferences("pref", Context.MODE_PRIVATE);
+        editor = prefs.edit();
 
 
 
@@ -83,11 +97,13 @@ public class MovementFragment extends Fragment implements SensorEventListener {
         Sensor counterSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
 
         if (counterSensor != null) {
-            Toast.makeText(getContext(), "TENGO UN STEP COUNTER USANDO SENSOR MANAGER", Toast.LENGTH_LONG).show();
+           // Toast.makeText(getContext(), "TENGO UN STEP COUNTER USANDO SENSOR MANAGER", Toast.LENGTH_LONG).show();
             mSensorManager.registerListener(this, counterSensor, SensorManager.SENSOR_DELAY_NORMAL);
 
 
         }
+
+
 
 
     }
@@ -96,6 +112,11 @@ public class MovementFragment extends Fragment implements SensorEventListener {
     public void onPause() {
         super.onPause();
         activityRunning = false;
+
+
+
+
+
         // timer.cancel();
         // if you unregister the last listener, the hardware will stop detecting step events
         //9  mSensorManager.unregisterListener(this);
@@ -104,20 +125,42 @@ public class MovementFragment extends Fragment implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (activityRunning) {
-            count.setText(String.valueOf(event.values[0]));
+
+            float numberOfSteps = Float.parseFloat(String.valueOf(event.values[0]));
+            float reset = prefs.getFloat("reset", -1);
+            secondsWalking = prefs.getFloat("SecondsOnTheGo", -1);
+
+            if (reset == -1 ) {
+
+                editor.putFloat("reference", numberOfSteps);
+                editor.putFloat("reset", 0);
+                editor.apply();
+
+                secondsWalking = 0;
+                foregroundSteps = 0;
+            }
+
+            if (secondsWalking == -1) {
+                secondsWalking = 0;
+            }
+
+            float reference = prefs.getFloat("reference", 0);
+
+           float currentSteps = numberOfSteps - reference;
             secondsWalking += 1.915;
             secondsWalking = round(secondsWalking, 2);
 
+
+            count.setText(Float.toString(numberOfSteps));
+            countReference.setText(Float.toString(currentSteps));
             state.setText("Seconds on the go: " + secondsWalking);
 
-            //  if (stateMessage != "Moving") {
-            //    stateMessage  = "Moving";
-            //   state.setText(stateMessage);
+            editor.putFloat("steps", currentSteps);
+            editor.putFloat("LastRecord", numberOfSteps);
+            editor.putFloat("SecondsOnTheGo", secondsWalking);
+            editor.apply();
 
-            //}
 
-
-            //  StartTimer();
 
         }
 
@@ -127,38 +170,16 @@ public class MovementFragment extends Fragment implements SensorEventListener {
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
 
-    private void StartTimer() {
 
 
-        timer = new CountDownTimer(5000, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                timeLeftInMilli = millisUntilFinished;
-                //updateTimer();
-
-            }
-
-            @Override
-            public void onFinish() {
-                stateMessage = "Standing";
-                state.setText(stateMessage);
 
 
-            }
-        }.start();
-    }
-
-    private void updateTimer() {
-        int seconds = (int) timeLeftInMilli / 1000;
-        //timerDisplay.setText("" + seconds);
-    }
-
-    public static double round(double value, int places) {
+    public static float round(double value, int places) {
         if (places < 0) throw new IllegalArgumentException();
 
         BigDecimal bd = new BigDecimal(value);
         bd = bd.setScale(places, RoundingMode.HALF_UP);
-        return bd.doubleValue();
+        return bd.floatValue();
     }
 
 }

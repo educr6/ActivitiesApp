@@ -20,6 +20,12 @@
             </intent-filter>
         </activity>
 
+        <receiver android:name=".DateBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.DATE_CHANGED"></action>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

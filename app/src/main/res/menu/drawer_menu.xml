@@ -16,6 +16,12 @@
             android:id="@+id/nav_activity_history"
             android:icon="@drawable/ic_activity_history"
             android:title="History" />
+
+        <item
+            android:id="@+id/nav_charts"
+            android:icon="@drawable/ic_charts"
+            android:title="Charts"
+            />
     </group>
 
 </menu>
