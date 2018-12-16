@@ -24,7 +24,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -41,9 +40,6 @@ import static example.com.stepsapp.MainActivity.getTimeDiff;
 
 
 public class CurrentActivityFragment extends Fragment {
-
-    private String currentActivityStr;
-    private String startActivityTimeStr;
 
     private TextView currentActivityTextView;
     private TextView startTimeTextView;
@@ -105,7 +101,8 @@ public class CurrentActivityFragment extends Fragment {
                                     MainActivity.activityLog.execSQL("UPDATE " + TABLE_NAME + " SET " +
                                             COL5 + " = \'" + durationPrevActivty + "\' WHERE " + COL2 + " LIKE \'" +
                                             prevActivityStartStr + "\'");
-                                } catch (ParseException e){}
+                                } catch (ParseException e) {
+                                }
 
 
                                 ContentValues values = new ContentValues(2);
@@ -140,8 +137,6 @@ public class CurrentActivityFragment extends Fragment {
                                 String[] stringCats = getResources().getStringArray(R.array.categories);
                                 values.put(COL6, stringCats[categorySpinner.getSelectedItemPosition()]);
                                 activityLog.insert(DatabaseHelper.TABLE_NAME, DatabaseHelper.COL1, values);
-
-
 
 
                                 updateFragmentView();

@@ -39,8 +39,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.syncState();
 
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MovementFragment()).commit();
-            navigationView.setCheckedItem(R.id.nav_movement);
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new CurrentActivityFragment()).commit();
+            navigationView.setCheckedItem(R.id.nav_current_activity);
         }
         activityLog = (new DatabaseHelper(this)).getWritableDatabase();
     }

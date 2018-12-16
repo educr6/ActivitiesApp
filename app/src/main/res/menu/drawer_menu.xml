@@ -11,7 +11,7 @@
         <item
             android:id="@+id/nav_movement"
             android:icon="@drawable/ic_movement"
-            android:title="Movement" />
+            android:title="Step Counter" />
         <item
             android:id="@+id/nav_activity_history"
             android:icon="@drawable/ic_activity_history"

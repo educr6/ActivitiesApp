@@ -2,18 +2,13 @@ package example.com.stepsapp;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
-import android.provider.CalendarContract;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.widget.Toast;
 
 import java.util.Calendar;
 
-public class DatabaseHelper extends SQLiteOpenHelper implements BaseColumns{
+public class DatabaseHelper extends SQLiteOpenHelper implements BaseColumns {
 
     public static final String TAG = "DatabaseHelper";
 
