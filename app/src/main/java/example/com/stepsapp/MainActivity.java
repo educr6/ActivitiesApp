@@ -1,39 +1,23 @@
 package example.com.stepsapp;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.os.CountDownTimer;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.hardware.SensorManager;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.content.pm.PackageManager;
 
-import org.w3c.dom.Text;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-    private DrawerLayout drawer;
-
+    final static public SimpleDateFormat generalDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     static public SQLiteDatabase activityLog = null;
-
-    final static public SimpleDateFormat printDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    private DrawerLayout drawer;
 
     //public TextView count;
     //public TextView state;
@@ -105,5 +89,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onPause();
     }
 
-
+    final static public String getTimeDiff(Date endTime, Date startTime) {
+        long diff = endTime.getTime() - startTime.getTime();
+        long seconds = (diff / 1000) % 60;
+        long minutes = (diff / 1000 / 60) % 60;
+        long hours = (diff / 1000 / 60 / 60);
+        String durationStr = (hours > 0 ? Long.toString(hours) + "H " : "");
+        durationStr += (minutes > 0 ? Long.toString(minutes) + "M " : "");
+        durationStr += (seconds > 0 ? Long.toString(seconds) + "S" : "");
+        return durationStr;
+    }
 }

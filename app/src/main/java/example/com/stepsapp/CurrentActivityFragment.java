@@ -2,30 +2,29 @@ package example.com.stepsapp;
 
 import android.Manifest;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.BaseColumns;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListAdapter;
-import android.widget.SimpleCursorAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
-import example.com.stepsapp.MainActivity;
 import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
+import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -33,7 +32,12 @@ import static example.com.stepsapp.DatabaseHelper.COL1;
 import static example.com.stepsapp.DatabaseHelper.COL2;
 import static example.com.stepsapp.DatabaseHelper.COL3;
 import static example.com.stepsapp.DatabaseHelper.COL4;
+import static example.com.stepsapp.DatabaseHelper.COL5;
+import static example.com.stepsapp.DatabaseHelper.COL6;
+import static example.com.stepsapp.DatabaseHelper.TABLE_NAME;
 import static example.com.stepsapp.MainActivity.activityLog;
+import static example.com.stepsapp.MainActivity.generalDateFormat;
+import static example.com.stepsapp.MainActivity.getTimeDiff;
 
 
 public class CurrentActivityFragment extends Fragment {
@@ -43,6 +47,7 @@ public class CurrentActivityFragment extends Fragment {
 
     private TextView currentActivityTextView;
     private TextView startTimeTextView;
+    private TextView durationTextView;
 
     public CurrentActivityFragment() {
         // Required empty public constructor
@@ -62,16 +67,18 @@ public class CurrentActivityFragment extends Fragment {
 
         currentActivityTextView = getActivity().findViewById(R.id.activity_name);
         startTimeTextView = getActivity().findViewById(R.id.start_time);
-
-        currentActivityStr = currentActivityTextView.getText().toString();
-        startActivityTimeStr = currentActivityTextView.getText().toString();
+        durationTextView = getActivity().findViewById(R.id.duration);
 
         Button newActivityBtn = getActivity().findViewById(R.id.activity_button);
         newActivityBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
                 LayoutInflater inflater = getActivity().getLayoutInflater();
-                final View dialogView = inflater.inflate(R.layout.alert_new_activity, null);
+                final View dialogView = getLayoutInflater().inflate(R.layout.alert_new_activity, null);
+                final Spinner categorySpinner = dialogView.findViewById(R.id.categorySpinner);
+                ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(), R.array.categories, android.R.layout.simple_spinner_item);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                categorySpinner.setAdapter(adapter);
                 new AlertDialog.Builder(getContext())
                         .setTitle("New activity")
                         .setView(dialogView)
@@ -79,40 +86,65 @@ public class CurrentActivityFragment extends Fragment {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
-                                EditText temp = dialogView.findViewById(R.id.activity_name_userInput);
-                                currentActivityStr = temp.getText().toString();
-                                currentActivityTextView.setText(currentActivityStr);
+                                EditText nameUserEdit = dialogView.findViewById(R.id.activity_name_userInput);
 
-                                Calendar calendar = Calendar.getInstance();
-                                final Date time = calendar.getTime();
-                                startActivityTimeStr = MainActivity.printDateFormat.format(time);
-                                startTimeTextView.setText(startActivityTimeStr);
+
+                                final Date time = Calendar.getInstance().getTime();
+
+                                Cursor constantsCursor = MainActivity.activityLog.rawQuery("SELECT " + BaseColumns._ID + ", " +
+                                        COL2 + " FROM " +
+                                        TABLE_NAME + " ORDER BY " +
+                                        COL2, null);
+                                constantsCursor.moveToLast();
+
+                                String prevActivityStartStr = constantsCursor.getString(constantsCursor.getColumnIndex(COL2));
+                                try {
+                                    Date prevActivityStart = generalDateFormat.parse(prevActivityStartStr);
+                                    String durationPrevActivty = getTimeDiff(time, prevActivityStart);
+
+                                    MainActivity.activityLog.execSQL("UPDATE " + TABLE_NAME + " SET " +
+                                            COL5 + " = \'" + durationPrevActivty + "\' WHERE " + COL2 + " LIKE \'" +
+                                            prevActivityStartStr + "\'");
+                                } catch (ParseException e){}
+
 
                                 ContentValues values = new ContentValues(2);
-                                values.put(COL1, currentActivityStr);
-                                values.put(COL2, MainActivity.printDateFormat.format(time));
+                                values.put(COL1, nameUserEdit.getText().toString());
+                                values.put(COL2, MainActivity.generalDateFormat.format(time));
 
                                 LocationManager locationManager = (LocationManager) getActivity().getSystemService(getContext().LOCATION_SERVICE);
 
-                                if(ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                                        ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                    ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+                                }
+
+                                if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                                        ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                                     LocationListenerGPS listenerGPS = new LocationListenerGPS();
-                                    Location currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                                    while (currentLocation == null || currentLocation.getAccuracy() > 100.) {
-                                        //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listenerGPS);
+                                    for (int i = 0; i < 100; i++) {
+//                                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, listenerGPS);
                                         locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, listenerGPS, null);
-                                        currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//                                        currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                                     }
                                     locationManager.removeUpdates(listenerGPS);
+                                    Location currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                                     values.put(COL3, currentLocation.getLatitude());
                                     values.put(COL4, currentLocation.getLongitude());
 
                                 } else {
+                                    Toast.makeText(getContext(), "You did not grant permission. Default location logged.", Toast.LENGTH_SHORT).show();
                                     values.put(COL3, "-1");
                                     values.put(COL4, "-1");
                                 }
+                                String[] stringCats = getResources().getStringArray(R.array.categories);
+                                values.put(COL6, stringCats[categorySpinner.getSelectedItemPosition()]);
                                 activityLog.insert(DatabaseHelper.TABLE_NAME, DatabaseHelper.COL1, values);
 
 
+
+
+                                updateFragmentView();
                             }
                         })
                         .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -127,7 +159,10 @@ public class CurrentActivityFragment extends Fragment {
             }
         });
 
+        updateFragmentView();
+    }
 
+    private void updateFragmentView() {
         Cursor constantsCursor = activityLog.rawQuery("SELECT " + BaseColumns._ID + ", " +
                 DatabaseHelper.COL1 + ", " +
                 DatabaseHelper.COL2 + ", " +
@@ -137,10 +172,15 @@ public class CurrentActivityFragment extends Fragment {
                 DatabaseHelper.COL2, null);
         constantsCursor.moveToLast();
 
-        TextView activityName = getActivity().findViewById(R.id.activity_name);
-        TextView startTime = getActivity().findViewById(R.id.start_time);
+        currentActivityTextView.setText("Activity: " + constantsCursor.getString(constantsCursor.getColumnIndex(COL1)));
+        startTimeTextView.setText("Start time: " + constantsCursor.getString(constantsCursor.getColumnIndex(COL2)));
+        try {
+            Date currentActivityStartTime = generalDateFormat.parse(constantsCursor.getString(constantsCursor.getColumnIndex(COL2)));
+            durationTextView.setText("Duration: " + MainActivity.getTimeDiff(Calendar.getInstance().getTime(), currentActivityStartTime));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
-        activityName.setText("Activity: " + constantsCursor.getString(constantsCursor.getColumnIndex(COL1)));
-        startTime.setText("Start time: " + constantsCursor.getString(constantsCursor.getColumnIndex(COL2)));
+
     }
 }

@@ -26,9 +26,11 @@ public class DatabaseHelper extends SQLiteOpenHelper implements BaseColumns{
     public static final String COL2 = "start_time";
     public static final String COL3 = "position_latitude";
     public static final String COL4 = "position_longtitude";
+    public static final String COL5 = "duration";
+    public static final String COL6 = "category";
 
     private static final String CREATE_ENTERIES = "CREATE TABLE " + TABLE_NAME + " (" + _ID + " INTEGER PRIMARY KEY, " + COL1 + " TEXT, " + COL2 +
-            " TEXT, " + COL3 + " TEXT, " + COL4 + " TEXT)";
+            " TEXT, " + COL3 + " TEXT, " + COL4 + " TEXT, " + COL5 + " TEXT, " + COL6 + " TEXT)";
     private static final String DELETE_ENTERIES = "DROP TABLE IF EXISTS " + TABLE_NAME;
 
 
@@ -43,7 +45,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements BaseColumns{
         ContentValues cv = new ContentValues();
 
         cv.put(COL1, "Init");
-        cv.put(COL2, MainActivity.printDateFormat.format(Calendar.getInstance().getTime()));
+        cv.put(COL2, MainActivity.generalDateFormat.format(Calendar.getInstance().getTime()));
         cv.put(COL3, "-1");
         cv.put(COL4, "-1");
         db.insert(TABLE_NAME, COL1, cv);
