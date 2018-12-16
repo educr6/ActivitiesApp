@@ -2,6 +2,7 @@ package example.com.stepsapp;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
@@ -52,5 +53,68 @@ public class DatabaseHelper extends SQLiteOpenHelper implements BaseColumns {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL(DELETE_ENTERIES);
         onCreate(db);
+    }
+
+    public static String[] fetchActivityNames(SQLiteDatabase db) {
+
+        String[] projection = { COL1 };
+
+
+
+        Cursor c = db.query(
+                TABLE_NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        String[] result = new String[c.getCount()];
+
+        c.moveToFirst();
+
+        for (int i = 0; i < c.getCount(); i++) {
+
+
+            String name = c.getString(c.getColumnIndexOrThrow(COL1));
+            result[i] = name;
+            c.moveToNext();
+        }
+
+        c.close();
+        return result;
+    }
+
+    public static String[] fetchDuration(SQLiteDatabase db) {
+
+        String[] projection = { COL5 };
+
+
+        Cursor c = db.query(
+                TABLE_NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        String[] result = new String[c.getCount()];
+
+        c.moveToFirst();
+
+        for (int i = 0; i < c.getCount(); i++) {
+
+
+            String name = c.getString(c.getColumnIndexOrThrow(COL5));
+            result[i] = name;
+            c.moveToNext();
+        }
+
+        c.close();
+        return result;
     }
 }
