@@ -96,10 +96,10 @@ public class CurrentActivityFragment extends Fragment {
                                 String prevActivityStartStr = constantsCursor.getString(constantsCursor.getColumnIndex(COL2));
                                 try {
                                     Date prevActivityStart = generalDateFormat.parse(prevActivityStartStr);
-                                    String durationPrevActivty = getTimeDiff(time, prevActivityStart);
+                                    String durationPrevActivity = getTimeDiff(time, prevActivityStart);
 
                                     MainActivity.activityLog.execSQL("UPDATE " + TABLE_NAME + " SET " +
-                                            COL5 + " = \'" + durationPrevActivty + "\' WHERE " + COL2 + " LIKE \'" +
+                                            COL5 + " = \'" + durationPrevActivity + "\' WHERE " + COL2 + " LIKE \'" +
                                             prevActivityStartStr + "\'");
                                 } catch (ParseException e) {
                                 }
@@ -136,7 +136,7 @@ public class CurrentActivityFragment extends Fragment {
                                 }
                                 String[] stringCats = getResources().getStringArray(R.array.categories);
                                 values.put(COL6, stringCats[categorySpinner.getSelectedItemPosition()]);
-                                activityLog.insert(DatabaseHelper.TABLE_NAME, DatabaseHelper.COL1, values);
+                                activityLog.insert(TABLE_NAME, COL1, values);
 
 
                                 updateFragmentView();
